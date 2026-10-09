@@ -1,7 +1,0 @@
-Metadata-Version: 2.4
-Name: sentiment-ai-qa-showcase
-Version: 0.1.0
-Summary: Showcase framework for sentiment classifier testing and evaluation
-Requires-Python: >=3.10
-Provides-Extra: test
-Requires-Dist: pytest>=8.0; extra == "test"
