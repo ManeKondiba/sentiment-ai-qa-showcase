@@ -1,4 +1,4 @@
-"""Dependency-light classification metrics."""
+"""Dependency-light classification metrics and Quality Gate threshold validation."""
 from collections import Counter
 from .predictor import LABELS
 
@@ -47,4 +47,54 @@ def evaluate(y_true: list[str], y_pred: list[str]) -> dict:
         "per_class": per_class,
         "confusion_matrix": matrix,
         "label_order": list(LABELS),
+    }
+
+
+def verify_quality_gate(
+    metrics: dict,
+    benchmark: dict | None = None,
+    min_accuracy: float = 0.80,
+    min_macro_f1: float = 0.75,
+    max_p95_latency_ms: float = 1000.0,
+) -> dict:
+    """Validate model evaluation metrics against configurable SLA Quality Gate thresholds."""
+    acc = metrics.get("accuracy", 0.0)
+    f1 = metrics.get("macro_f1", 0.0)
+    p95_lat = benchmark.get("p95_latency_ms", 0.0) if benchmark else 0.0
+
+    acc_pass = acc >= min_accuracy
+    f1_pass = f1 >= min_macro_f1
+    lat_pass = (p95_lat <= max_p95_latency_ms) if benchmark else True
+
+    overall_pass = acc_pass and f1_pass and lat_pass
+
+    checks = [
+        {
+            "metric": "accuracy",
+            "actual": acc,
+            "threshold": min_accuracy,
+            "passed": acc_pass,
+            "rule": f"accuracy ({acc}) >= min_accuracy ({min_accuracy})",
+        },
+        {
+            "metric": "macro_f1",
+            "actual": f1,
+            "threshold": min_macro_f1,
+            "passed": f1_pass,
+            "rule": f"macro_f1 ({f1}) >= min_macro_f1 ({min_macro_f1})",
+        },
+    ]
+
+    if benchmark:
+        checks.append({
+            "metric": "p95_latency_ms",
+            "actual": p95_lat,
+            "threshold": max_p95_latency_ms,
+            "passed": lat_pass,
+            "rule": f"p95_latency_ms ({p95_lat}) <= max_p95_latency_ms ({max_p95_latency_ms})",
+        })
+
+    return {
+        "quality_gate_passed": overall_pass,
+        "checks": checks,
     }

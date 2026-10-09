@@ -67,3 +67,5 @@ Thumbs.db
 # Log & Temporary Files
 *.log
 scratch/
+
+.env

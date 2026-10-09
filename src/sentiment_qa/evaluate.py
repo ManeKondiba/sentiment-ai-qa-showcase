@@ -5,7 +5,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .metrics import evaluate
+from .metrics import evaluate, verify_quality_gate
 from .predictor import (
     DemoLexiconPredictor,
     HttpPredictor,
@@ -44,6 +44,9 @@ def run_evaluation(
     html_report_path: Path | None = None,
     predictor=None,
     predictor_name: str = "DemoLexiconPredictor",
+    min_accuracy: float = 0.80,
+    min_macro_f1: float = 0.75,
+    max_p95_latency_ms: float = 1000.0,
 ) -> dict:
     if predictor is None:
         predictor = DemoLexiconPredictor()
@@ -70,12 +73,21 @@ def run_evaluation(
 
     texts = [c["text"] for c in cases]
     benchmark = benchmark_predictor(predictor, texts)
+    metrics_result = evaluate(y_true, y_pred)
+    quality_gate = verify_quality_gate(
+        metrics_result,
+        benchmark.to_dict(),
+        min_accuracy=min_accuracy,
+        min_macro_f1=min_macro_f1,
+        max_p95_latency_ms=max_p95_latency_ms,
+    )
 
     report = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "predictor": predictor_name,
-        "metrics": evaluate(y_true, y_pred),
+        "metrics": metrics_result,
         "benchmark": benchmark.to_dict(),
+        "quality_gate": quality_gate,
         "cases": rows,
         "limitations": [
             "Sample dataset size; review larger representative dataset for production claims.",
@@ -101,6 +113,9 @@ def main():
     parser.add_argument("--endpoint", default=None, help="HTTP API Endpoint URL (for --predictor http)")
     parser.add_argument("--model", default=None, help="Model ID/Name (for --predictor openai or huggingface)")
     parser.add_argument("--api-key", default=None, help="API key override (or use environment variables)")
+    parser.add_argument("--min-accuracy", type=float, default=0.80, help="Minimum accuracy SLA threshold")
+    parser.add_argument("--min-f1", type=float, default=0.75, help="Minimum Macro-F1 SLA threshold")
+    parser.add_argument("--max-latency", type=float, default=1000.0, help="Maximum P95 latency (ms) SLA threshold")
 
     args = parser.parse_args()
 
@@ -120,12 +135,16 @@ def main():
         html_report_path=html_path,
         predictor=predictor,
         predictor_name=description,
+        min_accuracy=args.min_accuracy,
+        min_macro_f1=args.min_f1,
+        max_p95_latency_ms=args.max_latency,
     )
 
     print(f"--- Sentiment QA Report: {description} ---")
     print(json.dumps(report["metrics"], indent=2))
-    print(f"\n--- Benchmark Summary ---")
-    print(json.dumps(report["benchmark"], indent=2))
+    print(f"\n--- Quality Gate SLA Status ---")
+    print(f"Passed: {report['quality_gate']['quality_gate_passed']}")
+    print(json.dumps(report["quality_gate"]["checks"], indent=2))
     print(f"\nJSON Report written to: {report_path}")
     print(f"HTML Dashboard written to: {html_path}")
 
