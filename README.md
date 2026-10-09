@@ -9,6 +9,7 @@ A beginner-friendly portfolio project demonstrating how to test, benchmark, eval
 - Functional checks for `positive`, `negative`, and `neutral` labels
 - Input validation and edge-case tests
 - Labeled-dataset evaluation: accuracy, per-class precision/recall/F1, macro-F1, confusion matrix
+- SLA Quality Gate Threshold Verification (`--min-accuracy`, `--min-f1`, `--max-latency`)
 - Performance & Latency Benchmarking (Avg, P50, P95, P99 latency, Throughput QPS)
 - **Adversarial Safety & Red-Teaming Audit**: 6-vector security audit (`src/sentiment_qa/red_team.py`)
 - **Interactive Web App & Live Dashboard**: Zero-dependency Web Server (`app.py`) for live prediction testing & 315-case benchmarks
@@ -17,7 +18,7 @@ A beginner-friendly portfolio project demonstrating how to test, benchmark, eval
 - Support for real AI model adapters (`OpenAI`, `HuggingFace`, `HTTP REST APIs`)
 - Robust label normalization across model prediction formats
 - Interactive HTML Dashboard generation (`reports/evaluation.html` & `reports/comparison.html`)
-- GitHub Actions CI/CD pipeline (`.github/workflows/eval.yml`)
+- GitHub Actions CI/CD pipeline (`.github/workflows/eval.yml`) & Jenkins Pipeline (`Jenkinsfile`)
 
 ## Requirements
 
@@ -38,11 +39,11 @@ python app.py
 
 Open your browser at: `http://localhost:8080`
 
-## CLI Evaluation, Security Audit & Comparison
+## CLI Evaluation, Quality Gates, Security Audit & Comparison
 
 ```powershell
-# Run 315-case evaluation
-python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json
+# Run 315-case evaluation with SLA Quality Gate thresholds
+python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --min-accuracy 0.80 --min-f1 0.75 --max-latency 1000.0
 
 # Run 6-vector Adversarial Safety Red-Teaming Audit
 python -m sentiment_qa.red_team
@@ -92,6 +93,8 @@ sentiment-ai-qa-showcase/
 │   └── eval.yml
 ├── datasets/
 │   └── sentiment_cases.json
+├── docs/
+│   └── LEARNING_GUIDE.md
 ├── reports/
 │   ├── evaluation.json
 │   ├── evaluation.html
@@ -109,17 +112,21 @@ sentiment-ai-qa-showcase/
 │   └── evaluate.py
 ├── tests/
 │   ├── test_app.py
-│   ├── test_functional.py
+│   ├── test_audit_correctness.py
+│   ├── test_benchmark.py
+│   ├── test_compare.py
 │   ├── test_edge_cases.py
+│   ├── test_functional.py
+│   ├── test_llm_judge.py
 │   ├── test_metrics.py
 │   ├── test_predictors.py
-│   ├── test_benchmark.py
+│   ├── test_quality_gate.py
+│   ├── test_red_team.py
 │   ├── test_report_generator.py
-│   ├── test_robustness.py
-│   ├── test_llm_judge.py
-│   ├── test_compare.py
-│   └── test_red_team.py
+│   └── test_robustness.py
 ├── app.py
+├── Jenkinsfile
+├── .gitignore
 ├── requirements.txt
 ├── pyproject.toml
 └── README.md
