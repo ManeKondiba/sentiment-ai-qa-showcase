@@ -1,6 +1,7 @@
 # Environment variables & Secret Credential Files
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 *.secret
