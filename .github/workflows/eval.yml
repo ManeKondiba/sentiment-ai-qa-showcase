@@ -31,14 +31,16 @@ jobs:
       - name: Run Sentiment QA Evaluation Pipeline
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || secrets.GROQ_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY || secrets.HF_TOKEN || secrets.HUGGINGFACE_TOKEN }}
         run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
-            echo "Running evaluation with AI Model (Auto-detecting OpenAI / Groq / OpenRouter)..."
-            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai || (echo "AI Model authentication failed or rate limited. Falling back to baseline..." && python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor demo)
+          if [ -n "$OPENAI_API_KEY" ] || [ -n "$GROQ_API_KEY" ] || [ -n "$OPENROUTER_API_KEY" ]; then
+            echo "Running evaluation with AI Model (Auto-detected Provider)..."
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai
           elif [ -n "$HF_API_KEY" ]; then
             echo "Running evaluation with Hugging Face model..."
-            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor huggingface || python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor demo
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor huggingface
           else
             echo "Running baseline evaluation..."
             python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json
@@ -47,14 +49,18 @@ jobs:
       - name: Run DeepEval LLM Evaluation Suite
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || secrets.GROQ_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY || secrets.HF_TOKEN || secrets.HUGGINGFACE_TOKEN }}
         run: |
           python -m sentiment_qa.deepeval_adapter --dataset datasets/sentiment_cases.json
 
       - name: Run Security Red-Teaming Audit
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || secrets.GROQ_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY || secrets.HF_TOKEN || secrets.HUGGINGFACE_TOKEN }}
         run: |
           python -m sentiment_qa.red_team
 

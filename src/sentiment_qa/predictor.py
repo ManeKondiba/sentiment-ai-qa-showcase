@@ -160,14 +160,11 @@ class OpenAIPredictor:
         timeout: float = 15.0,
         max_retries: int = 3,
     ):
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GROQ_KEY") or os.getenv("OPENROUTER_API_KEY") or ""
         self.model = model
         self.api_base = api_base.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
-
-        if not self.api_key and "openai.com" in self.api_base:
-            raise ValueError("OPENAI_API_KEY environment variable or api_key parameter is required")
 
         # Auto-detect Groq and OpenRouter keys if api_base is standard OpenAI
         if self.api_key.startswith("gsk_") and "openai.com" in self.api_base:
@@ -178,6 +175,9 @@ class OpenAIPredictor:
             self.api_base = "https://openrouter.ai/api/v1"
             if self.model == "gpt-4o-mini":
                 self.model = "meta-llama/llama-3.2-1b-instruct:free"
+
+        if not self.api_key and "openai.com" in self.api_base:
+            raise ValueError("OPENAI_API_KEY or GROQ_API_KEY environment variable is required")
 
     def predict(self, text: str) -> str:
         if not isinstance(text, str):
