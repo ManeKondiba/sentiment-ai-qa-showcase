@@ -43,6 +43,15 @@ pipeline {
             }
         }
 
+        stage('Run DeepEval LLM Evaluation') {
+            steps {
+                sh '''
+                    . .venv/bin/activate
+                    python -m sentiment_qa.deepeval_adapter --dataset datasets/sentiment_cases.json
+                '''
+            }
+        }
+
         stage('Run Security Red-Teaming Audit') {
             steps {
                 sh '''
