@@ -167,12 +167,12 @@ class OpenAIPredictor:
         self.timeout = timeout
         self.max_retries = max_retries
 
-        # Auto-detect Groq and OpenRouter keys if api_base is standard OpenAI
-        if self.api_key.startswith("gsk_") and "openai.com" in self.api_base:
+        # Auto-detect and normalize Groq and OpenRouter keys/endpoints
+        if self.api_key.startswith("gsk_") or "groq.com" in self.api_base:
             self.api_base = "https://api.groq.com/openai/v1"
             if self.model == "gpt-4o-mini":
                 self.model = "llama-3.1-8b-instant"
-        elif self.api_key.startswith("sk-or-v1-") and "openai.com" in self.api_base:
+        elif self.api_key.startswith("sk-or-v1-") or "openrouter.ai" in self.api_base:
             self.api_base = "https://openrouter.ai/api/v1"
             if self.model == "gpt-4o-mini":
                 self.model = "meta-llama/llama-3.2-1b-instruct:free"
