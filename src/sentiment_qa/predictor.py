@@ -14,9 +14,21 @@ import time
 import urllib.request
 import urllib.error
 
+from pathlib import Path
+
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Search CWD, project root, and user home directory for .env
+    for dotenv_path in [
+        Path.cwd() / ".env",
+        Path(__file__).resolve().parents[2] / ".env",
+        Path.home() / ".env",
+    ]:
+        if dotenv_path.exists():
+            load_dotenv(dotenv_path)
+            break
+    else:
+        load_dotenv()
 except ImportError:
     pass
 
