@@ -15,6 +15,7 @@ Here are the languages, frameworks, libraries, and tools used to build this fram
 | **Standard Library** | `urllib.request`, `json`, `dataclasses`, `statistics`, `argparse`, `re` | Standard library components ensuring zero required third-party dependencies for baseline execution. |
 | **CI/CD Automation** | **GitHub Actions** | Continuous integration pipeline executing unit tests and evaluation reports on push/PR (`.github/workflows/eval.yml`). |
 | **Reporting UI** | **HTML5, Bootstrap 5, Vanilla JavaScript** | Standalone interactive visual dashboards (`reports/evaluation.html` & `reports/comparison.html`). |
+| **LLM Evaluation Framework** | **DeepEval 4.x** | LLM metric testing (`ExactMatchMetric`, `LLMTestCase`) integrated with Pytest (`src/sentiment_qa/deepeval_adapter.py`). |
 | **LLM Integration** | **OpenAI API Protocol** (REST API) | LLM-as-a-Judge evaluation and prompt-injection safety auditing. |
 
 ---

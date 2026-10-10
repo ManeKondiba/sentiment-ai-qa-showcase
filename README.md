@@ -45,6 +45,9 @@ Open your browser at: `http://localhost:8080`
 # Run 315-case evaluation with SLA Quality Gate thresholds
 python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --min-accuracy 0.80 --min-f1 0.75 --max-latency 1000.0
 
+# Run DeepEval LLM evaluation suite
+python -m sentiment_qa.deepeval_adapter --dataset datasets/sentiment_cases.json
+
 # Run 6-vector Adversarial Safety Red-Teaming Audit
 python -m sentiment_qa.red_team
 

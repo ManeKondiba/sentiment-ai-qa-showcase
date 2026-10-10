@@ -67,5 +67,7 @@ Thumbs.db
 # Log & Temporary Files
 *.log
 scratch/
+.deepeval/
+.deepeval_cache/
 
 .env
