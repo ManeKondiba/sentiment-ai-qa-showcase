@@ -30,7 +30,8 @@ def get_predictor_instance(type_name: str, endpoint: str | None = None, model: s
     if name == "openai":
         model_name = model or "gpt-4o-mini"
         base_url = api_base or "https://api.openai.com/v1"
-        return OpenAIPredictor(api_key=api_key, model=model_name, api_base=base_url), f"OpenAIPredictor ({model_name} @ {base_url})"
+        predictor = OpenAIPredictor(api_key=api_key, model=model_name, api_base=base_url)
+        return predictor, f"OpenAIPredictor ({predictor.model} @ {predictor.api_base})"
 
     if name == "huggingface":
         model_name = model or "cardiffnlp/twitter-roberta-base-sentiment-latest"
