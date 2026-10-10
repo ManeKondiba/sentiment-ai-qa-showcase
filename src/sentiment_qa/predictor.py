@@ -14,6 +14,12 @@ import time
 import urllib.request
 import urllib.error
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 LABELS = ("positive", "negative", "neutral")
 
 POSITIVE_WORDS = {
