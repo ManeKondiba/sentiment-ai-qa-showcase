@@ -60,7 +60,7 @@ def normalize_label(raw_label: str) -> str:
     raise ValueError(f"Unable to normalize model prediction '{raw_label}' to valid label {LABELS}")
 
 
-def execute_request_with_retry(req: urllib.request.Request, timeout: float = 15.0, max_retries: int = 3, initial_delay: float = 0.5) -> bytes:
+def execute_request_with_retry(req: urllib.request.Request, timeout: float = 20.0, max_retries: int = 5, initial_delay: float = 1.0) -> bytes:
     """Execute HTTP request with exponential backoff retry for HTTP 429 and transient 5xx errors."""
     delay = initial_delay
     last_exc = None
@@ -73,7 +73,8 @@ def execute_request_with_retry(req: urllib.request.Request, timeout: float = 15.
             last_exc = exc
             # Retry on Rate Limit (429) or Server Errors (500, 502, 503, 504)
             if exc.code in (429, 500, 502, 503, 504) and attempt < max_retries:
-                time.sleep(delay)
+                retry_delay = max(delay, 3.0) if exc.code == 429 else delay
+                time.sleep(retry_delay)
                 delay *= 2.0
                 continue
             raise RuntimeError(f"HTTP request failed with status code {exc.code}: {exc.reason}") from exc
@@ -189,6 +190,7 @@ class OpenAIPredictor:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SentimentAI-QA/1.0",
         }
         payload = json.dumps({
             "model": self.model,
@@ -239,7 +241,10 @@ class HuggingFacePredictor:
             raise ValueError("text must not be empty")
 
         endpoint = f"https://api-inference.huggingface.co/models/{self.model_id}"
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SentimentAI-QA/1.0",
+        }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
