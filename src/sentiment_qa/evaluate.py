@@ -16,7 +16,7 @@ from .report_generator import generate_html_report
 from .benchmark import benchmark_predictor
 
 
-def get_predictor_instance(type_name: str, endpoint: str | None = None, model: str | None = None, api_key: str | None = None):
+def get_predictor_instance(type_name: str, endpoint: str | None = None, model: str | None = None, api_key: str | None = None, api_base: str | None = None):
     """Factory function to build a predictor from CLI options."""
     name = type_name.lower().strip()
     if name == "demo":
@@ -29,7 +29,8 @@ def get_predictor_instance(type_name: str, endpoint: str | None = None, model: s
 
     if name == "openai":
         model_name = model or "gpt-4o-mini"
-        return OpenAIPredictor(api_key=api_key, model=model_name), f"OpenAIPredictor ({model_name})"
+        base_url = api_base or "https://api.openai.com/v1"
+        return OpenAIPredictor(api_key=api_key, model=model_name, api_base=base_url), f"OpenAIPredictor ({model_name} @ {base_url})"
 
     if name == "huggingface":
         model_name = model or "cardiffnlp/twitter-roberta-base-sentiment-latest"
@@ -113,6 +114,7 @@ def main():
     parser.add_argument("--endpoint", default=None, help="HTTP API Endpoint URL (for --predictor http)")
     parser.add_argument("--model", default=None, help="Model ID/Name (for --predictor openai or huggingface)")
     parser.add_argument("--api-key", default=None, help="API key override (or use environment variables)")
+    parser.add_argument("--api-base", default=None, help="Custom API Base URL (for Groq, OpenRouter, Ollama, vLLM)")
     parser.add_argument("--min-accuracy", type=float, default=0.80, help="Minimum accuracy SLA threshold")
     parser.add_argument("--min-f1", type=float, default=0.75, help="Minimum Macro-F1 SLA threshold")
     parser.add_argument("--max-latency", type=float, default=1000.0, help="Maximum P95 latency (ms) SLA threshold")
@@ -124,6 +126,7 @@ def main():
         endpoint=args.endpoint,
         model=args.model,
         api_key=args.api_key,
+        api_base=args.api_base,
     )
 
     report_path = Path(args.report)

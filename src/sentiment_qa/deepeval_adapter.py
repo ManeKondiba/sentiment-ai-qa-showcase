@@ -99,6 +99,7 @@ def main():
     parser.add_argument("--endpoint", default=None, help="HTTP API Endpoint URL")
     parser.add_argument("--model", default=None, help="Model ID/Name")
     parser.add_argument("--api-key", default=None, help="API key override")
+    parser.add_argument("--api-base", default=None, help="Custom API Base URL (for Groq, OpenRouter, Ollama, vLLM)")
 
     args = parser.parse_args()
 
@@ -107,6 +108,7 @@ def main():
         endpoint=args.endpoint,
         model=args.model,
         api_key=args.api_key,
+        api_base=args.api_base,
     )
 
     summary = run_deepeval_suite(Path(args.dataset), predictor, description)
