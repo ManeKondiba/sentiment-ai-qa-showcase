@@ -32,6 +32,14 @@ jobs:
         run: |
           python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json
 
+      - name: Run DeepEval LLM Evaluation Suite
+        run: |
+          python -m sentiment_qa.deepeval_adapter --dataset datasets/sentiment_cases.json
+
+      - name: Run Security Red-Teaming Audit
+        run: |
+          python -m sentiment_qa.red_team
+
       - name: Upload Evaluation Reports
         uses: actions/upload-artifact@v4
         with:
