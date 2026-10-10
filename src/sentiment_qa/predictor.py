@@ -53,7 +53,7 @@ class Prediction:
 
 def normalize_label(raw_label: str) -> str:
     """Normalize raw API model output to canonical ('positive', 'negative', 'neutral')."""
-    cleaned = str(raw_label).strip().lower().strip(".\"'`")
+    cleaned = str(raw_label).strip().lower().strip(".\"'` \n\t*#")
     if cleaned in ("pos", "positive", "label_2", "star 5", "star 4", "5 stars", "4 stars"):
         return "positive"
     if cleaned in ("neg", "negative", "label_0", "star 1", "star 2", "1 star", "2 stars"):
@@ -61,7 +61,7 @@ def normalize_label(raw_label: str) -> str:
     if cleaned in ("neu", "neutral", "label_1", "star 3", "3 stars"):
         return "neutral"
 
-    # Fallback substring search if model returned full sentence
+    # Fallback substring search if model returned full sentence or explanation
     if "positive" in cleaned:
         return "positive"
     if "negative" in cleaned:
@@ -182,8 +182,8 @@ class OpenAIPredictor:
         # Auto-detect and normalize Groq and OpenRouter keys/endpoints
         if self.api_key.startswith("gsk_") or "groq.com" in self.api_base:
             self.api_base = "https://api.groq.com/openai/v1"
-            if self.model == "gpt-4o-mini":
-                self.model = "llama-3.1-8b-instant"
+            if self.model in ("gpt-4o-mini", "llama-3.1-8b-instant", "llama3-8b-8192"):
+                self.model = "openai/gpt-oss-20b"
         elif self.api_key.startswith("sk-or-v1-") or "openrouter.ai" in self.api_base:
             self.api_base = "https://openrouter.ai/api/v1"
             if self.model == "gpt-4o-mini":
