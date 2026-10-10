@@ -29,14 +29,32 @@ jobs:
           pytest -v
 
       - name: Run Sentiment QA Evaluation Pipeline
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY }}
         run: |
-          python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo "Running evaluation with OpenAI / Groq model..."
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai --model gpt-4o-mini || python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai --model llama-3.1-8b-instant --api-base https://api.groq.com/openai/v1
+          elif [ -n "$HF_API_KEY" ]; then
+            echo "Running evaluation with Hugging Face model..."
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor huggingface
+          else
+            echo "Running baseline evaluation..."
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json
+          fi
 
       - name: Run DeepEval LLM Evaluation Suite
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY }}
         run: |
           python -m sentiment_qa.deepeval_adapter --dataset datasets/sentiment_cases.json
 
       - name: Run Security Red-Teaming Audit
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY }}
         run: |
           python -m sentiment_qa.red_team
 
