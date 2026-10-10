@@ -18,8 +18,11 @@ from .evaluate import get_predictor_instance
 
 def create_deepeval_test_cases(dataset_path: Path, predictor=None) -> list[LLMTestCase]:
     """Convert dataset cases into DeepEval LLMTestCase objects with actual model outputs."""
-    if predictor is None:
-        predictor = DemoLexiconPredictor()
+    if not dataset_path.exists():
+        repo_root = Path(__file__).resolve().parents[2]
+        alt_dataset = repo_root / dataset_path
+        if alt_dataset.exists():
+            dataset_path = alt_dataset
 
     cases = json.loads(dataset_path.read_text(encoding="utf-8"))
     test_cases = []

@@ -50,8 +50,13 @@ def run_evaluation(
     min_macro_f1: float = 0.75,
     max_p95_latency_ms: float = 1000.0,
 ) -> dict:
-    if predictor is None:
-        predictor = DemoLexiconPredictor()
+    if not dataset_path.exists():
+        repo_root = Path(__file__).resolve().parents[2]
+        alt_dataset = repo_root / dataset_path
+        if alt_dataset.exists():
+            dataset_path = alt_dataset
+        else:
+            raise FileNotFoundError(f"Dataset file not found at '{dataset_path}' or '{alt_dataset}'")
 
     cases = json.loads(dataset_path.read_text(encoding="utf-8"))
     y_true, y_pred, rows = [], [], []
