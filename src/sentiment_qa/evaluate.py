@@ -122,13 +122,21 @@ def main():
 
     args = parser.parse_args()
 
-    predictor, description = get_predictor_instance(
-        type_name=args.predictor,
-        endpoint=args.endpoint,
-        model=args.model,
-        api_key=args.api_key,
-        api_base=args.api_base,
-    )
+    try:
+        predictor, description = get_predictor_instance(
+            type_name=args.predictor,
+            endpoint=args.endpoint,
+            model=args.model,
+            api_key=args.api_key,
+            api_base=args.api_base,
+        )
+    except ValueError as exc:
+        print(f"\n[ERROR] Predictor Configuration Failed: {exc}")
+        print("\nTo evaluate using AI models (OpenAI / Groq / HuggingFace), please provide your API key:")
+        print("  1. PowerShell: $env:OPENAI_API_KEY=\"gsk_your_key_here\"")
+        print("  2. CLI Flag:   python -m sentiment_qa.evaluate --predictor openai --api-key \"gsk_your_key_here\"")
+        print("  3. File:       Create a '.env' file containing: OPENAI_API_KEY=gsk_your_key_here\n")
+        return
 
     report_path = Path(args.report)
     html_path = Path(args.html_report) if args.html_report else report_path.with_suffix(".html")
