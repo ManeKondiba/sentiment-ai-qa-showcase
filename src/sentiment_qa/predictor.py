@@ -169,6 +169,16 @@ class OpenAIPredictor:
         if not self.api_key and "openai.com" in self.api_base:
             raise ValueError("OPENAI_API_KEY environment variable or api_key parameter is required")
 
+        # Auto-detect Groq and OpenRouter keys if api_base is standard OpenAI
+        if self.api_key.startswith("gsk_") and "openai.com" in self.api_base:
+            self.api_base = "https://api.groq.com/openai/v1"
+            if self.model == "gpt-4o-mini":
+                self.model = "llama-3.1-8b-instant"
+        elif self.api_key.startswith("sk-or-v1-") and "openai.com" in self.api_base:
+            self.api_base = "https://openrouter.ai/api/v1"
+            if self.model == "gpt-4o-mini":
+                self.model = "meta-llama/llama-3.2-1b-instruct:free"
+
     def predict(self, text: str) -> str:
         if not isinstance(text, str):
             raise TypeError("text must be a string")

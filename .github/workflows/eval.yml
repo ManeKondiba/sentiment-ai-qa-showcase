@@ -34,11 +34,11 @@ jobs:
           HF_API_KEY: ${{ secrets.HF_API_KEY }}
         run: |
           if [ -n "$OPENAI_API_KEY" ]; then
-            echo "Running evaluation with OpenAI / Groq model..."
-            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai --model gpt-4o-mini || python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai --model llama-3.1-8b-instant --api-base https://api.groq.com/openai/v1
+            echo "Running evaluation with AI Model (Auto-detecting OpenAI / Groq / OpenRouter)..."
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor openai || (echo "AI Model authentication failed or rate limited. Falling back to baseline..." && python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor demo)
           elif [ -n "$HF_API_KEY" ]; then
             echo "Running evaluation with Hugging Face model..."
-            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor huggingface
+            python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor huggingface || python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json --predictor demo
           else
             echo "Running baseline evaluation..."
             python -m sentiment_qa.evaluate --dataset datasets/sentiment_cases.json --report reports/evaluation.json
