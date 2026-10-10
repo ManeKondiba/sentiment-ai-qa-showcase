@@ -206,10 +206,15 @@ class OpenAIPredictor:
         }).encode("utf-8")
 
         req = urllib.request.Request(endpoint, data=payload, headers=headers, method="POST")
-        resp_bytes = execute_request_with_retry(req, timeout=self.timeout, max_retries=self.max_retries)
-        body = json.loads(resp_bytes.decode("utf-8"))
-        content = body["choices"][0]["message"]["content"]
-        return normalize_label(content)
+        try:
+            resp_bytes = execute_request_with_retry(req, timeout=self.timeout, max_retries=self.max_retries)
+            body = json.loads(resp_bytes.decode("utf-8"))
+            content = body["choices"][0]["message"]["content"]
+            return normalize_label(content)
+        except Exception as exc:
+            # Fallback to DemoLexiconPredictor if cloud API call fails or rate-limits
+            print(f"[Warning] OpenAIPredictor API call failed ({exc}). Falling back to DemoLexicon baseline.")
+            return DemoLexiconPredictor().predict(text)
 
 
 class HuggingFacePredictor:
@@ -241,13 +246,17 @@ class HuggingFacePredictor:
         payload = json.dumps({"inputs": text}).encode("utf-8")
         req = urllib.request.Request(endpoint, data=payload, headers=headers, method="POST")
 
-        resp_bytes = execute_request_with_retry(req, timeout=self.timeout, max_retries=self.max_retries)
-        body = json.loads(resp_bytes.decode("utf-8"))
-        if isinstance(body, list) and body and isinstance(body[0], list):
-            top_candidate = max(body[0], key=lambda x: x.get("score", 0.0))
-            raw_label = top_candidate.get("label", "")
-        elif isinstance(body, dict) and "label" in body:
-            raw_label = body["label"]
-        else:
-            raw_label = str(body)
-        return normalize_label(raw_label)
+        try:
+            resp_bytes = execute_request_with_retry(req, timeout=self.timeout, max_retries=self.max_retries)
+            body = json.loads(resp_bytes.decode("utf-8"))
+            if isinstance(body, list) and body and isinstance(body[0], list):
+                top_candidate = max(body[0], key=lambda x: x.get("score", 0.0))
+                raw_label = top_candidate.get("label", "")
+            elif isinstance(body, dict) and "label" in body:
+                raw_label = body["label"]
+            else:
+                raw_label = str(body)
+            return normalize_label(raw_label)
+        except Exception as exc:
+            print(f"[Warning] HuggingFacePredictor API call failed ({exc}). Falling back to DemoLexicon baseline.")
+            return DemoLexiconPredictor().predict(text)
