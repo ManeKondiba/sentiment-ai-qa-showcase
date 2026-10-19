@@ -20,7 +20,7 @@ from sentiment_qa.evaluate import run_evaluation
 from sentiment_qa.compare import compare_predictors, generate_comparison_html
 from sentiment_qa.llm_judge import RuleBasedJudge
 
-PORT = 8080
+PORT = 8081
 DATASET_PATH = Path("datasets/sentiment_cases.json")
 REPORT_PATH = Path("reports/evaluation.json")
 HTML_REPORT_PATH = Path("reports/evaluation.html")
