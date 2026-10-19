@@ -48,7 +48,7 @@ def run_evaluation(
     predictor_name: str = "DemoLexiconPredictor",
     min_accuracy: float = 0.80,
     min_macro_f1: float = 0.75,
-    max_p95_latency_ms: float = 1000.0,
+    max_p95_latency_ms: float = 5000.0,
 ) -> dict:
     if not dataset_path.exists():
         repo_root = Path(__file__).resolve().parents[2]
@@ -123,7 +123,7 @@ def main():
     parser.add_argument("--api-base", default=None, help="Custom API Base URL (for Groq, OpenRouter, Ollama, vLLM)")
     parser.add_argument("--min-accuracy", type=float, default=0.80, help="Minimum accuracy SLA threshold")
     parser.add_argument("--min-f1", type=float, default=0.75, help="Minimum Macro-F1 SLA threshold")
-    parser.add_argument("--max-latency", type=float, default=1000.0, help="Maximum P95 latency (ms) SLA threshold")
+    parser.add_argument("--max-latency", type=float, default=5000.0, help="Maximum P95 latency (ms) SLA threshold (default: 5000ms for cloud APIs)")
 
     args = parser.parse_args()
 

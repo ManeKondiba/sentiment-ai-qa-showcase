@@ -182,8 +182,9 @@ class OpenAIPredictor:
         # Auto-detect and normalize Groq and OpenRouter keys/endpoints
         if self.api_key.startswith("gsk_") or "groq.com" in self.api_base:
             self.api_base = "https://api.groq.com/openai/v1"
-            if self.model in ("gpt-4o-mini", "llama-3.1-8b-instant", "llama3-8b-8192"):
-                self.model = "openai/gpt-oss-20b"
+            # Use Groq's best available chat-completion model for classification accuracy
+            if self.model not in ("openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"):
+                self.model = "qwen/qwen3.8-27b"  # Best Groq model for classification
         elif self.api_key.startswith("sk-or-v1-") or "openrouter.ai" in self.api_base:
             self.api_base = "https://openrouter.ai/api/v1"
             if self.model == "gpt-4o-mini":
@@ -202,20 +203,28 @@ class OpenAIPredictor:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SentimentAI-QA/1.0",
+            "User-Agent": "SentimentAI-QA/1.0 (python-urllib)",
         }
+        system_prompt = (
+            "You are a strict sentiment classifier. Classify the text into exactly ONE of three categories:\n"
+            "- positive: expresses satisfaction, happiness, praise, or approval\n"
+            "- negative: expresses dissatisfaction, frustration, criticism, or complaint\n"
+            "- neutral: states facts, statuses, or information with NO emotional tone\n\n"
+            "Rules:\n"
+            "1. Output ONLY one word: positive, negative, or neutral\n"
+            "2. No punctuation, no explanation, no other words\n"
+            "3. If no emotion is expressed (e.g. order status, timestamps, transaction records), output: neutral\n\n"
+            "Examples:\n"
+            "Text: 'I love this product!' -> positive\n"
+            "Text: 'The package arrived broken.' -> negative\n"
+            "Text: 'Order #12345 has been shipped via FedEx.' -> neutral"
+        )
         payload = json.dumps({
             "model": self.model,
             "temperature": 0.0,
             "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a strict sentiment classifier. Analyze the user text and output EXACTLY "
-                        "one word: 'positive', 'negative', or 'neutral'. Do not output any punctuation or explanation."
-                    ),
-                },
-                {"role": "user", "content": text},
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Text: '{text}'"},
             ],
         }).encode("utf-8")
 
@@ -223,7 +232,20 @@ class OpenAIPredictor:
         try:
             resp_bytes = execute_request_with_retry(req, timeout=self.timeout, max_retries=self.max_retries)
             body = json.loads(resp_bytes.decode("utf-8"))
-            content = body["choices"][0]["message"]["content"]
+            content = body["choices"][0]["message"]["content"].strip()
+            # Retry once with a more explicit prompt if model returned empty or thinking-only response
+            if not content or content.startswith("<think>"):
+                retry_payload = json.dumps({
+                    "model": self.model,
+                    "temperature": 0.0,
+                    "messages": [
+                        {"role": "user", "content": f"Classify this text as exactly one word (positive/negative/neutral): {text}"},
+                    ],
+                }).encode("utf-8")
+                retry_req = urllib.request.Request(endpoint, data=retry_payload, headers=headers, method="POST")
+                resp_bytes = execute_request_with_retry(retry_req, timeout=self.timeout, max_retries=1)
+                body = json.loads(resp_bytes.decode("utf-8"))
+                content = body["choices"][0]["message"]["content"].strip()
             return normalize_label(content)
         except Exception as exc:
             # Fallback to DemoLexiconPredictor if cloud API call fails or rate-limits

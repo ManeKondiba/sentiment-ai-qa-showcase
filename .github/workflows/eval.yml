@@ -5,6 +5,16 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  # ✅ Daily cron job: runs every day at 02:00 UTC
+  schedule:
+    - cron: '0 2 * * *'
+  # ✅ Manual trigger: run anytime from GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      predictor:
+        description: 'Predictor to use (openai / huggingface / baseline)'
+        required: false
+        default: 'openai'
 
 jobs:
   test-and-evaluate:

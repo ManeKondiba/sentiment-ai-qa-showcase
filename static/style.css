@@ -1,0 +1,83 @@
+/* Premium UI Styles */
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, hsl(210, 30%, 20%), hsl(210, 25%, 15%));
+    color: #e0e0e0;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.card-custom {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-custom:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-primary {
+    background-color: hsl(210, 70%, 55%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: hsl(210, 70%, 60%);
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background-color: hsl(120, 60%, 45%);
+    border: none;
+}
+
+.btn-success:hover {
+    background-color: hsl(120, 60%, 50%);
+    transform: translateY(-2px);
+}
+
+.input-group .form-control {
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #e0e0e0;
+}
+
+.input-group .btn {
+    margin-left: 0.5rem;
+}
+
+#predictionResult {
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+}
+
+.badge {
+    font-size: 1rem;
+    padding: 0.4rem 0.8rem;
+}
